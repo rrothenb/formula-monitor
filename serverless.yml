@@ -1,0 +1,33 @@
+service: formula-monitor-${env:FORMULA_INSTANCE_ID}
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  iamRoleStatements:
+  - Effect: Allow
+    Action:
+      - cloudwatch:PutMetricData
+    Resource: "*"
+
+plugins:
+  - serverless-cloud-elements-plugin
+
+functions:
+  monitor:
+    handler: handler.eventHandler
+    timeout: 60
+    memorySize: 128
+    environment:
+      FORMULA_INSTANCE_ID: ${env:FORMULA_INSTANCE_ID}
+      INTERVAL_IN_MINUTES: 5
+    events:
+      - schedule: cron(*/5 * * * ? *)
+
+resources:
+  Resources:
+    account:
+      Type: CE::Account
+      Properties:
+        userToken: ${env:USER_TOKEN}
+        orgToken: ${env:ORG_TOKEN}
+        baseUrl: ${env:BASE_URL}
